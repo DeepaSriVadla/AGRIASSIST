@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriAssist</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8f0;
+        }
+
+        /* Login/Signup Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 320px;
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .switch-form a {
+            color: #4CAF50;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Main App Styles */
+        .main-app {
+            display: none;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .nav-bar {
+            background-color: #45a049;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .nav-bar a:hover {
+            background-color: #4CAF50;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .section {
+            display: none;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Section -->
+    <div id="auth-section" class="auth-container">
+        <!-- Login Form -->
+        <div id="login-form" class="form-container active">
+            <h2>Login to AgriAssist</h2>
+            <form onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" required>
+                    <div id="login-email-error" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" required>
+                    <div id="login-password-error" class="error-message"></div>
+                </div>
+                <button type="submit">Login</button>
+                <div class="switch-form">
+                    Don't have an account? <a onclick="switchForm('signup-form')">Sign Up</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div id="signup-form" class="form-container">
+            <h2>Create Account</h2>
+            <form onsubmit="return handleSignup(event)">
+                <div class="form-group">
+                    <label for="signup-name">Full Name:</label>
+                    <input type="text" id="signup-name" required>
+                    <div id="signup-name-error" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email:</label>
+                    <input type="email" id="signup-email" required>
+                    <div id="signup-email-error" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-phone">Phone Number:</label>
+                    <input type="tel" id="signup-phone" pattern="[0-9]{10}" required>
+                    <div id="signup-phone-error" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password:</label>
+                    <input type="password" id="signup-password" required>
+                    <div id="signup-password-error" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password:</label>
+                    <input type="password" id="signup-confirm-password" required>
+                    <div id="signup-confirm-password-error" class="error-message"></div>
+                </div>
+                <button type="submit">Sign Up</button>
+                <div class="switch-form">
+                    Already have an account? <a onclick="switchForm('login-form')">Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Section -->
+    <div id="main-app" class="main-app">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">AGRIASSIST</div>
+            <div style="display: flex; align-items: center;">
+                <span id="user-name" style="margin-right: 20px;"></span>
+                <div id="google_translate_element"></div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {pageLanguage: 'en'},
+                'google_translate_element'
+            );
+        }
+    </script>
+
+    <script type="text/javascript" 
+            src=
+"https://translate.google.com/translate_a/element.js?
+cb=googleTranslateElementInit">
+    </script>
+
+                <button onclick="logout()" style="width: auto; margin-left: 10px;">Logout</button>
+            </div>
+        </div>
+
+        <script src='https://cdn.jotfor.ms/s/umd/latest/for-embedded-agent.js'></script>
+<script>
+  window.addEventListener("DOMContentLoaded", function() {
+    window.AgentInitializer.init({
+      agentRenderURL: "https://agent.jotform.com/01954ce9a61a7370a8b5296c7a91dc0695c5",
+      rootId: "JotformAgent-01954ce9a61a7370a8b5296c7a91dc0695c5",
+      formID: "01954ce9a61a7370a8b5296c7a91dc0695c5",
+      queryParams: ["skipWelcome=1", "maximizable=1"],
+      domain: "https://www.jotform.com",
+      isDraggable: false,
+      background: "linear-gradient(180deg, #035C5F 0%, #035C5F 100%)",
+      buttonBackgroundColor: "#8E1CA8",
+      buttonIconColor: "#FFFFFF",
+      variant: false,
+      customizations: {
+        "greeting": "Yes",
+        "greetingMessage": "Hi! How can I assist you?",
+        "pulse": "Yes",
+        "position": "right"
+      },
+      isVoice: undefined
+    });
+  });
+</script>
+        <!-- Navigation -->
+        <div class="nav-bar">
+            <a href="#" onclick="showSection('dashboard')">Home</a>
+            <a href="#" onclick="showSection('weather')">Weather</a>
+            <a href="#" onclick="showSection('soil')">Soil Analysis</a>
+            <a href="#" onclick="showSection('market')">Market Prices</a>
+            <a href="#" onclick="showSection('crop')">Crop Recommendation</a>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="section active">
+            <div class="main-content">
+                <div class="card" onclick="showSection('weather')">
+                    <h2>Weather Information</h2>
+                    <p>Check weather conditions for your location</p>
+                </div>
+                <div class="card" onclick="showSection('soil')">
+                    <h2>Soil Analysis</h2>
+                    <p>Analyze soil type and get recommendations</p>
+                </div>
+                <div class="card" onclick="showSection('market')">
+                    <h2>Market Prices</h2>
+                    <p>Current vegetable market prices</p>
+                </div>
+                <div class="card" onclick="showSection('crop')">
+                    <h2>Crop Recommendation</h2>
+                    <p>Get crop suggestions based on conditions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Section -->
+        <div id="weather" class="section">
+            <h2>Weather Information</h2>
+            <div class="form-group">
+                <input type="text" id="city" placeholder="Enter city name">
+                <button onclick="getWeather()">Get Weather</button>
+            </div>
+            <div id="weather-info"></div>
+        </div>
+
+        <!-- Soil Analysis Section -->
+        <div id="soil" class="section">
+            <h2>Soil Analysis</h2>
+            <select id="soil-type">
+                <option value="">Select Soil Type</option>
+                <option value="clay">Clay Soil</option>
+                <option value="sandy">Sandy Soil</option>
+                <option value="loamy">Loamy Soil</option>
+                <option value="black">Black Soil</option>
+                <option value="red">Red Soil</option>
+            </select>
+            <button onclick="analyzeSoil()">Analyze Soil</button>
+            <div id="soil-info"></div>
+        </div>
+
+        <!-- Market Prices Section -->
+<div id="market" class="section">
+    <h2><a href="https://agmarknet.gov.in/priceAndArrivals/statedistrict.aspx" target="_blank">Current Market Prices</a></h2>
+</div>
+
+
+        <!-- Crop Recommendation Section -->
+        <div id="crop" class="section">
+            <h2>Crop Recommendation</h2>
+            <select id="crop-soil-type">
+                <option value="">Select Soil Type</option>
+                <option value="clay">Clay Soil</option>
+                <option value="sandy">Sandy Soil</option>
+                <option value="loamy">Loamy Soil</option>
+                <option value="black">Black Soil</option>
+                <option value="red">Red Soil</option>
+            </select>
+            <select id="season">
+                <option value="">Select Season</option>
+                <option value="summer">Summer</option>
+                <option value="winter">Winter</option>
+                <option value="monsoon">Monsoon</option>
+            </select>
+            <button onclick="recommendCrop()">Get Recommendation</button>
+            <div id="recommendation"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize localStorage
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify([]));
+        }
+
+        // Authentication Functions
+        function switchForm(formId) {
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(formId).classList.add('active');
+            clearErrors();
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(error => {
+                error.style.display = 'none';
+            });
+        }
+
+        function handleSignup(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const phone = document.getElementById('signup-phone').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showError('signup-confirm-password-error', 'Passwords do not match');
+                return false;
+            }
+
+            if (password.length < 6) {
+                showError('signup-password-error', 'Password must be at least 6 characters');
+                return false;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users.some(user => user.email === email)) {
+                showError('signup-email-error', 'Email already registered');
+                return false;
+            }
+
+            users.push({ name, email, phone, password });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            alert('Account created successfully! Please login.');
+            switchForm('login-form');
+            return false;
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const users = JSON.parse(localStorage.getItem('users'));
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify({
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone
+                }));
+                
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('user-name').textContent = `Welcome, ${user.name}`;
+                return false;
+            } else {
+                showError('login-password-error', 'Invalid email or password');
+                return false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            document.getElementById('auth-section').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+        }
+
+        // Main App Functions
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function getWeather() {
+            const city = document.getElementById('city').value;
+            const API_KEY = 'b5a94e242280f3d00213d3489f64a521';
+            
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
+                .then(response => response.json())
+                .then(data => {
+                    const weatherInfo = document.getElementById('weather-info');
+                    weatherInfo.innerHTML = `
+                        <h3>Weather in ${data.name}</h3>
+                        <p>Temperature: ${data.main.temp}°C</p>
+                        <p>Humidity: ${data.main.humidity}%</p>
+                        <p>Weather: ${data.weather[0].description}</p>
+                    `;
+                })
+                .catch(error => {
+                    alert('Error fetching weather data. Please try again.');
+                });
+        }
+
+        const soilData = {
+            clay: {
+                ph: "6.0-7.0",
+                characteristics: "Heavy, sticky when wet, hard when dry",
+                maintenance: "Add organic matter, avoid overwatering"
+            },
+            sandy: {
+                ph: "6.0-6.5",
+                characteristics: "Light, well-draining, warms quickly",
+                maintenance: "Add organic matter, frequent watering"
+            },
+            loamy: {
+                ph: "6.0-7.0",
+                characteristics: "Perfect balance, ideal for most crops",
+                maintenance: "Regular organic matter addition"
+            },
+            black: {
+                ph: "6.5-7.5",
+                characteristics: "Rich in nutrients, good water retention",
+                maintenance: "Proper drainage management"
+            },
+            red: {
+                ph: "6.0-6.5",
+                characteristics: "Iron-rich, well-draining",
+                maintenance: "Add organic matter, manage pH"
+            }
+        };
+
+        function analyzeSoil() {
+            const soilType = document.getElementById('soil-type').value;
+            const soilInfo = document.getElementById('soil-info');
+            
+            if(soilType && soilData[soilType]) {
+                const data = soilData[soilType];
+                soilInfo.innerHTML = `
+                    <h3>Soil Analysis Results</h3>
+                    <p><strong>pH Range:</strong> ${data.ph}</p>
+                    <p><strong>Characteristics:</strong> ${data.characteristics}</p>
+                    <p><strong>Maintenance Tips:</strong> ${data.maintenance}</p>
+                `;
+            } else {
+                soilInfo.innerHTML = '<p>Please select a soil type</p>';
+            }
+        }
+
+        const marketData = [
+            { vegetable: "Tomato", price: 40, market: "Delhi", updated: "2025-01-24" },
+            { vegetable: "Potato", price: 25, market: "Mumbai", updated: "2025-01-24" },
+            { vegetable: "Onion", price: 35, market: "Bangalore", updated: "2025-01-24" },
+            { vegetable: "Cauliflower", price: 30, market: "Chennai", updated: "2025-01-24" },
+            { vegetable: "Carrot", price: 45, market: "Kolkata", updated: "2025-01-24" }
+        ];
+
+        function loadMarketPrices() {
+            const tableBody = document.getElementById('price-table');
+            tableBody.innerHTML = marketData.map(item => `
+                <tr>
+                    <td>${item.vegetable}</td>
+                    <td>${item.price}</td>
+                    <td>${item.market}</td>
+                    <td>${item.updated}</td>
+                </tr>
+            `).join('');
+        }
+
+        const cropRecommendations = {
+            clay: {
+                summer: ["Rice", "Wheat", "Cotton"],
+                winter: ["Wheat", "Mustard", "Peas"],
+                monsoon: ["Rice", "Corn", "Sugarcane"]
+            },
+            sandy: {
+                summer: ["Groundnut", "Watermelon", "Cucumber"],
+                winter: ["Carrots", "Potatoes", "Beans"],
+                monsoon: ["Corn", "Millet", "Beans"]
+            },
+            loamy: {
+                summer: ["Vegetables", "Cotton", "Corn"],
+                winter: ["Wheat", "Vegetables", "Pulses"],
+                monsoon: ["Rice", "Vegetables", "Sugarcane"]
+            },
+            black: {
+                summer: ["Cotton", "Sugarcane", "Sunflower"],
+                winter: ["Wheat", "Chickpeas", "Sorghum"],
+                monsoon: ["Cotton", "Soybeans", "Pulses"]
+            },
+            red: {
+                summer: ["Groundnut", "Millet", "Cotton"],
+                winter: ["Pulses", "Vegetables", "Oilseeds"],
+                monsoon: ["Rice", "Corn", "Pulses"]
+            }
+        };
+
+        function recommendCrop() {
+            const soilType = document.getElementById('crop-soil-type').value;
+            const season = document.getElementById('season').value;
+            const recommendationDiv = document.getElementById('recommendation');
+            
+            if(soilType && season && cropRecommendations[soilType][season]) {
+                const crops = cropRecommendations[soilType][season];
+                recommendationDiv.innerHTML = `
+                    <h3>Recommended Crops</h3>
+                    <p>Based on your soil type (${soilType}) and season (${season}), we recommend:</p>
+                    <ul>
+                        ${crops.map(crop => `<li>${crop}</li>`).join('')}
+                    </ul>
+                `;
+            } else {
+                recommendationDiv.innerHTML = '<p>Please select both soil type and season</p>';
+            }
+        }
+
+        function changeLanguage() {
+            alert('Language change functionality will be implemented with a translation API');
+        }
+
+        // Initialize
+        function init() {
+            // Add test account if no users exist
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users.length === 0) {
+                users.push({
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    phone: '1234567890',
+                    password: 'password123'
+                });
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+
+            // Check if user is already logged in
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('user-name').textContent = `Welcome, ${currentUser.name}`;
+            }
+
+            // Load market prices
+            loadMarketPrices();
+        }
+
+        // Run initialization
+        init();
+    </script>
+<script>
+
+	function loadGoogleTranslate()
+
+	{
+
+		new google.translate.TranslateElement("myid")
+
+	}
+
+</script>
+
+</body>
+</html>
